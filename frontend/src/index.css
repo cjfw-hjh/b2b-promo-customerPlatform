@@ -11,8 +11,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   padding: 12px 20px;
   border-bottom: 1px solid #e5e4e7;
+}
+
+.app-nav__menu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .app-content {
@@ -176,4 +184,43 @@ body {
   flex-direction: column;
   gap: 8px;
   max-width: 480px;
+}
+
+/* 반응형(모바일) 원칙 — 6-wireframe.md 공통: 네비게이션 축약, 표->카드형 리스트, 입력 필드 세로 배치.
+   접근성(a11y)은 이번 MVP 범위에서 고려하지 않는다(PRD 6번). */
+@media (max-width: 640px) {
+  .app-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .app-nav__menu {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .sales-log-search {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sales-log-search select,
+  .sales-log-search input {
+    width: 100%;
+  }
+
+  .auth-page fieldset,
+  .sales-log-form fieldset {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* 표 형태 목록(영업일지 목록/팀원 일지 목록/코멘트 이력)이 카드형 리스트로 전환된다. */
+  .sales-log-list-item a {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
 }
