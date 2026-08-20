@@ -50,3 +50,39 @@ body {
   font-size: 14px;
   margin: 0;
 }
+
+.sales-log-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 480px;
+}
+
+.sales-log-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.sales-log-form fieldset {
+  display: flex;
+  gap: 16px;
+  border: 1px solid #e5e4e7;
+}
+
+.form-hint {
+  color: #6b6375;
+  font-size: 13px;
+  margin: 0;
+}
+
+.form-static {
+  color: #6b6375;
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
