@@ -2,7 +2,8 @@ import js from '@eslint/js';
 
 export default [
   {
-    ignores: ['**/node_modules/**', '**/coverage/**'],
+    // frontend는 Vite 스캐폴드가 제공하는 oxlint(JSX 인식, 무설정)로 별도 관리한다 — `cd frontend && npm run lint`.
+    ignores: ['**/node_modules/**', '**/coverage/**', 'frontend/**'],
   },
   js.configs.recommended,
   {

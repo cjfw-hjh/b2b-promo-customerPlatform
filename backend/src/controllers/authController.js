@@ -31,4 +31,8 @@ function logout(req, res, next) {
   });
 }
 
-module.exports = { signup, login, logout };
+function me(req, res) {
+  res.json({ id: req.session.userId, role: req.session.role });
+}
+
+module.exports = { signup, login, logout, me };

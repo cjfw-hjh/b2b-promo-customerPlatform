@@ -202,3 +202,28 @@ describe('로그인/로그아웃 및 세션', () => {
     expect(res.status).toBe(204);
   });
 });
+
+describe('GET /api/auth/me', () => {
+  test('로그인하지 않은 상태로 호출하면 401', async () => {
+    const res = await request(app).get('/api/auth/me');
+    expect(res.status).toBe(401);
+  });
+
+  test('로그인한 상태로 호출하면 세션의 id/role을 반환한다', async () => {
+    const agent = request.agent(app);
+    await agent.post('/api/auth/signup').send({
+      employeeNo: TEST_EMPLOYEE_NO,
+      email: TEST_EMAIL,
+      password: 'password1',
+      role: 'salesperson',
+      managerEmail: TEST_MANAGER_EMAIL,
+    });
+    const loginRes = await agent
+      .post('/api/auth/login')
+      .send({ email: TEST_EMAIL, password: 'password1' });
+
+    const res = await agent.get('/api/auth/me');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: loginRes.body.id, role: 'salesperson' });
+  });
+});

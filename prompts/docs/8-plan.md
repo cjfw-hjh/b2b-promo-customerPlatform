@@ -221,8 +221,8 @@
   - React 프로젝트를 4-project-principle.md 6번 디렉토리 구조(`pages/`, `components/`, `api/`, `hooks/`)대로 스캐폴딩한다.
   - 라우팅, 공통 네비게이션 바(`components/common/Layout.jsx`), `RoleGuard.jsx`(role별 화면 분기), `api/` 하위 fetch 래퍼 베이스를 구성한다.
 - **완료 조건**:
-  - [ ] `npm start`(또는 동등 스크립트)로 앱이 기동되고 빈 라우트들이 렌더링된다.
-  - [ ] 로그인 안 된 상태로 보호된 라우트 접근 시 로그인 화면으로 리다이렉트된다.
+  - [x] `npm start`(또는 동등 스크립트)로 앱이 기동되고 빈 라우트들이 렌더링된다. (Vite는 `npm run dev`)
+  - [x] 로그인 안 된 상태로 보호된 라우트 접근 시 로그인 화면으로 리다이렉트된다.
 
 ### FE-2. 회원가입/로그인 화면 `(P0)`
 
