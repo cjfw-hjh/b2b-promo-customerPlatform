@@ -14,7 +14,7 @@
    PRD 5번에 명시된 기능(P0) 외에는 만들지 않는다. "나중에 팀 개념이 생기면", "나중에 DB를 바꾸면", "나중에 관리자 화면이 생기면" 같은 가정에 대비한 구조·레이어·설정값은 두지 않는다. 거래처 마스터에 관리자 CRUD API를 만들지 않는 것(RULE-CUSTOMER-003)이 대표 사례다 — DB 직접 INSERT로 끝낸다.
 
 2. **관심사 분리는 하되, 레이어 수는 최소로**
-   "HTTP 요청 처리"와 "업무 규칙(RULE-ID)"과 "데이터 저장"은 섞이지 않아야 하지만, 이를 위해 몇 겹으로 나눌지는 별개 문제다. 이 프로젝트는 백엔드 4단계(Route/Controller/Service/DB), 프론트 3단계(Page/Component/API client)로 못박는다. 그 이상 쪼개지 않는다(2번 섹션에서 근거 설명).
+   "HTTP 요청 처리"와 "업무 규칙(RULE-ID)"과 "데이터 저장"은 섞이지 않아야 하지만, 이를 위해 몇 겹으로 나눌지는 별개 문제다. 이 프로젝트는 백엔드 3단계(Route/Controller/Service, Service가 DB 접근까지 담당), 프론트 3단계(Page/Component/API client)로 못박는다. 그 이상 쪼개지 않는다(2번 섹션에서 근거 설명).
 
 3. **RULE-ID의 코드 내 추적 가능성**
    도메인 정의서/PRD의 모든 RULE-ID(RULE-LOG-005 등)는 이를 구현한 코드 바로 위에 주석으로 남긴다. 이것이 이 프로젝트에서 유일하게 강제하는 "문서화 규칙"이다 — 별도의 요구사항 추적 매트릭스나 위키 페이지는 만들지 않는다. 코드 자체가 추적표다.
@@ -32,20 +32,19 @@
 
 ## 2. 의존성/레이어 원칙
 
-### 백엔드: Route → Controller → Service → DB (4단계, 단방향)
+### 백엔드: Route → Controller → Service (3단계, 단방향)
 
 | 레이어 | 책임 | 하지 않는 일 |
 |---|---|---|
 | Route | 경로/HTTP 메서드 선언, 인증/역할 미들웨어 연결 | 로직 없음 |
 | Controller | `req`/`res` 변환, 입력값 꺼내기, Service 호출, 응답 반환 | RULE-ID 판단 없음 |
-| Service | RULE-ID 구현 지점(비즈니스 규칙), 여러 DB 호출 조합 | HTTP(req/res) 객체를 알지 못함 |
-| DB | pg Pool 기반 SQL 실행 함수 모음 | 비즈니스 규칙 없음, 상위 레이어를 알지 못함 |
+| Service | RULE-ID 구현 지점(비즈니스 규칙), `pool.query`로 DB 접근까지 직접 담당 | HTTP(req/res) 객체를 알지 못함 |
 
-의존 방향은 항상 위 → 아래 한 방향이다. Service가 Controller를 참조하거나 DB 모듈이 Service를 아는 일은 없다(순환 의존 금지).
+의존 방향은 항상 위 → 아래 한 방향이다. Service가 Controller를 참조하는 일은 없다(순환 의존 금지).
 
-**Repository 추상화 레이어를 두지 않는 이유**: "DB를 나중에 바꿀 수도 있다"는 가정 자체를 하지 않는다. PostgreSQL을 그대로 쓴다는 전제이므로 Service가 DB 쿼리 함수를 직접 호출한다. 인터페이스 하나에 구현체 하나뿐인 추상화는 파일 수만 늘리고 실익이 없다. ORM 도입 여부도 자유이나, 4개 테이블 규모에서는 pg 드라이버로 얇은 쿼리 함수를 짜는 편이 Sequelize/Prisma 같은 별도 학습·설정 비용보다 싸다.
+**별도 DB/Repository 레이어를 두지 않는 이유**: "DB를 나중에 바꿀 수도 있다"는 가정 자체를 하지 않는다. PostgreSQL을 그대로 쓴다는 전제이므로 Service가 `db/pool.js`(pg Pool)를 직접 호출해 SQL을 실행한다. Service와 DB 사이에 쿼리 함수 모듈이나 Repository 인터페이스를 끼워 넣는 것은 파일 수만 늘리고 실익이 없다. ORM 도입 여부도 자유이나, 4개 테이블 규모에서는 pg 드라이버로 Service 안에 얇은 쿼리를 직접 쓰는 편이 Sequelize/Prisma 같은 별도 학습·설정 비용보다 싸다.
 
-**왜 4단계에서 멈추는가**: 유즈케이스 계층, DTO 계층, 도메인 엔티티 계층을 추가로 두는 헥사고날/클린 아키텍처는 조직 규모나 장기 유지보수 팀을 전제로 한 패턴이다. 이 프로젝트는 4테이블 CRUD + 코멘트 스레드가 전부이며, Controller/Service 분리만으로도 이미 "HTTP 없이 Service 함수만 단위테스트할 수 있다"는 핵심 이득을 얻는다. 그 이상은 없다.
+**왜 3단계에서 멈추는가**: 유즈케이스 계층, DTO 계층, 도메인 엔티티 계층을 추가로 두는 헥사고날/클린 아키텍처는 조직 규모나 장기 유지보수 팀을 전제로 한 패턴이다. 이 프로젝트는 4테이블 CRUD + 코멘트 스레드가 전부이며, Controller/Service 분리만으로도 이미 "HTTP 없이 Service 함수만 단위테스트할 수 있다"는 핵심 이득을 얻는다. 그 이상은 없다.
 
 ### 프론트엔드: Page → Component → API client (3단계, 단방향)
 
@@ -69,7 +68,6 @@ Component는 Page를 알지 못하고(props 계약으로만 소통), API client�
 - 훅: **camelCase**, `use` 접두사 — `useSession.js`
 - 유틸/API client: **camelCase** — `formatDate.js`, `salesLogApi.js`
 - 백엔드 라우트/컨트롤러/서비스: **camelCase** — `salesLogRoutes.js`, `salesLogController.js`, `salesLogService.js`
-- 백엔드 DB 쿼리 모듈: **camelCase** — `salesLogQueries.js`
 
 ### DB 네이밍 (PostgreSQL)
 
@@ -119,7 +117,7 @@ POST   /api/sales-logs/:id/comments    (role에 따라 피드백/답변 자동 �
 | 팀장 이메일(가입 시 입력) | `manager_email` — 영업사원은 필수(RULE-ORG-001), 팀장 행에서는 NULL(RULE-ORG-006) | `managerEmail` | — |
 | 실제 팀장 계정 매핑 | `manager_id` — 매칭 전까지 NULL(RULE-ORG-003), 매칭되는 팀장이 가입하면 채워짐(RULE-ORG-005) | `managerId` | — |
 | 코멘트(팀장 피드백 + 영업사원 답변) | `comments` | `Comment` / `comment` | `/api/sales-logs/:id/comments` |
-| 코멘트 작성자 구분 | `author_id` → `users.role`로 판별 | `authorRole` | — |
+| 코멘트 작성자 구분 | `author_id` → `users.role`로 판별 | `type` (`'팀장 코멘트'` \| `'답변'`) | — |
 
 `comments` 테이블은 하나로 두되(별도 feedback/reply 테이블 분리 없음), 작성자의 `users.role`을 조인해 화면에서 "팀장 코멘트"인지 "영업사원 답변"인지 구분한다 — 테이블을 쪼개면 스레드 조회 쿼리가 UNION이 필요해지는데, 4테이블 원칙과도 맞지 않는다.
 
