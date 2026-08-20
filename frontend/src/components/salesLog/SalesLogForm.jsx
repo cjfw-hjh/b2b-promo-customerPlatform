@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import CustomerSelect from './CustomerSelect';
+import VoiceInputButton from './VoiceInputButton';
 
 const ACTIVITY_TYPES = ['외근', '내근', '기타'];
 // PRINCIPLE-ACTIVITY-001: 자동 차단 로직 없이 안내 문구만 둔다 — 입력란 위/아래에 동일 문구 노출.
@@ -17,6 +18,11 @@ export default function SalesLogForm({ initialValues, onSubmit, onCancel, submit
   function handleSubmit(e) {
     e.preventDefault();
     onSubmit({ customerId, activityType, activityContent });
+  }
+
+  // RULE-STT-005: 음성 입력과 직접 입력은 배타적이지 않다 — 기존 내용에 이어붙인다.
+  function handleVoiceResult(transcript) {
+    setActivityContent((prev) => (prev ? `${prev} ${transcript}` : transcript));
   }
 
   return (
@@ -52,6 +58,7 @@ export default function SalesLogForm({ initialValues, onSubmit, onCancel, submit
           required
         />
         <p className="form-hint">{ACTIVITY_GUIDE}</p>
+        <VoiceInputButton onResult={handleVoiceResult} />
       </label>
 
       <p className="form-static">
