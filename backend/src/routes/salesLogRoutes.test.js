@@ -9,12 +9,19 @@ const OTHER_SALES_EMPLOYEE_NO = '900402';
 const OTHER_SALES_EMAIL = 'saleslog.route.other.test@example.com';
 const MANAGER_EMPLOYEE_NO = '900403';
 const MANAGER_EMAIL = 'saleslog.route.manager.test@example.com';
+const OTHER_MANAGER_EMPLOYEE_NO = '900404';
+const OTHER_MANAGER_EMAIL = 'saleslog.route.othermanager.test@example.com';
 const TEAM_LEAD_EMAIL = 'saleslog.route.teamlead.test@example.com'; // 실제 가입되지 않는, managerEmail 필드용 값
 
 const CUSTOMER_ID = 1; // 시드 거래처(id 1~3) 중 하나
 
 async function cleanup() {
-  const employeeNos = [SALES_EMPLOYEE_NO, OTHER_SALES_EMPLOYEE_NO, MANAGER_EMPLOYEE_NO];
+  const employeeNos = [
+    SALES_EMPLOYEE_NO,
+    OTHER_SALES_EMPLOYEE_NO,
+    MANAGER_EMPLOYEE_NO,
+    OTHER_MANAGER_EMPLOYEE_NO,
+  ];
   await pool.query(
     `DELETE FROM comments WHERE sales_log_id IN (
        SELECT id FROM sales_logs WHERE author_id IN (
@@ -194,6 +201,55 @@ describe('GET /api/sales-logs, GET /api/sales-logs/:id', () => {
 
     const detailB = await agentB.get(`/api/sales-logs/${logId}`);
     expect(detailB.status).toBe(403);
+  });
+
+  test('FE-7: 담당 팀장은 소속 영업사원의 영업일지를 상세 조회할 수 있다', async () => {
+    const salesAgent = request.agent(app);
+    await signupAndLogin(salesAgent, {
+      employeeNo: SALES_EMPLOYEE_NO,
+      email: SALES_EMAIL,
+      role: 'salesperson',
+      managerEmail: MANAGER_EMAIL,
+    });
+    const createRes = await salesAgent
+      .post('/api/sales-logs')
+      .send({ customerId: CUSTOMER_ID, activityType: '외근', activityContent: '영업사원의 일지' });
+    const logId = createRes.body.id;
+
+    const managerAgent = request.agent(app);
+    await signupAndLogin(managerAgent, {
+      employeeNo: MANAGER_EMPLOYEE_NO,
+      email: MANAGER_EMAIL,
+      role: 'manager',
+    });
+
+    const res = await managerAgent.get(`/api/sales-logs/${logId}`);
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(logId);
+  });
+
+  test('FE-7: 담당 팀장이 아닌 다른 팀장이 조회하면 403', async () => {
+    const salesAgent = request.agent(app);
+    await signupAndLogin(salesAgent, {
+      employeeNo: SALES_EMPLOYEE_NO,
+      email: SALES_EMAIL,
+      role: 'salesperson',
+      managerEmail: MANAGER_EMAIL,
+    });
+    const createRes = await salesAgent
+      .post('/api/sales-logs')
+      .send({ customerId: CUSTOMER_ID, activityType: '외근', activityContent: '영업사원의 일지' });
+    const logId = createRes.body.id;
+
+    const otherManagerAgent = request.agent(app);
+    await signupAndLogin(otherManagerAgent, {
+      employeeNo: OTHER_MANAGER_EMPLOYEE_NO,
+      email: OTHER_MANAGER_EMAIL,
+      role: 'manager',
+    });
+
+    const res = await otherManagerAgent.get(`/api/sales-logs/${logId}`);
+    expect(res.status).toBe(403);
   });
 
   test('존재하지 않는 id를 조회하면 404', async () => {

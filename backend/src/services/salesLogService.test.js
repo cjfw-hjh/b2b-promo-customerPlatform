@@ -361,6 +361,82 @@ describe('getSalesLogById', () => {
     const found = await salesLogService.getSalesLogById(log.id, userA.id);
     expect(found.status).toBe('작성 완료');
   });
+
+  describe('FE-7: 팀장 접근', () => {
+    const FE7_SALES_EMPLOYEE_NO = '900308';
+    const FE7_SALES_EMAIL = 'saleslog.fe7sales.test@example.com';
+    const FE7_MANAGER_EMPLOYEE_NO = '900309';
+    const FE7_MANAGER_EMAIL = 'saleslog.fe7manager.test@example.com';
+    const FE7_OTHER_MANAGER_EMPLOYEE_NO = '900310';
+    const FE7_OTHER_MANAGER_EMAIL = 'saleslog.fe7othermanager.test@example.com';
+
+    afterEach(async () => {
+      const employeeNos = [
+        FE7_SALES_EMPLOYEE_NO,
+        FE7_MANAGER_EMPLOYEE_NO,
+        FE7_OTHER_MANAGER_EMPLOYEE_NO,
+      ];
+      await pool.query(
+        `DELETE FROM sales_logs WHERE author_id IN (
+           SELECT id FROM users WHERE employee_no = ANY($1)
+         )`,
+        [employeeNos]
+      );
+      await pool.query('DELETE FROM users WHERE employee_no = ANY($1)', [employeeNos]);
+    });
+
+    test('담당 팀장은 소속 영업사원의 영업일지를 조회할 수 있다', async () => {
+      const sales = await authService.signup({
+        employeeNo: FE7_SALES_EMPLOYEE_NO,
+        email: FE7_SALES_EMAIL,
+        password: 'password1',
+        role: 'salesperson',
+        managerEmail: FE7_MANAGER_EMAIL,
+      });
+      const log = await salesLogService.createSalesLog({
+        customerId: CUSTOMER_ID,
+        activityType: '외근',
+        activityContent: '내용',
+        authorId: sales.id,
+      });
+      const manager = await authService.signup({
+        employeeNo: FE7_MANAGER_EMPLOYEE_NO,
+        email: FE7_MANAGER_EMAIL,
+        password: 'password1',
+        role: 'manager',
+      });
+
+      const found = await salesLogService.getSalesLogById(log.id, manager.id, 'manager');
+      expect(found.id).toBe(log.id);
+      expect(found.authorEmployeeNo).toBe(FE7_SALES_EMPLOYEE_NO);
+    });
+
+    test('담당 팀장이 아닌 다른 팀장이 조회하면 403', async () => {
+      const sales = await authService.signup({
+        employeeNo: FE7_SALES_EMPLOYEE_NO,
+        email: FE7_SALES_EMAIL,
+        password: 'password1',
+        role: 'salesperson',
+        managerEmail: FE7_MANAGER_EMAIL,
+      });
+      const log = await salesLogService.createSalesLog({
+        customerId: CUSTOMER_ID,
+        activityType: '외근',
+        activityContent: '내용',
+        authorId: sales.id,
+      });
+      const otherManager = await authService.signup({
+        employeeNo: FE7_OTHER_MANAGER_EMPLOYEE_NO,
+        email: FE7_OTHER_MANAGER_EMAIL,
+        password: 'password1',
+        role: 'manager',
+      });
+
+      await expect(
+        salesLogService.getSalesLogById(log.id, otherManager.id, 'manager')
+      ).rejects.toMatchObject({ status: 403 });
+    });
+  });
 });
 
 describe('updateSalesLog', () => {

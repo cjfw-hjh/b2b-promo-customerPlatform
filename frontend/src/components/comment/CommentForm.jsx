@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
-// RULE-REPLY-001: 팀장 코멘트가 1건 이상 있어야(disabled=false) 답변 입력이 가능하다.
-export default function CommentForm({ onSubmit, disabled, submitting, error }) {
+// RULE-REPLY-001: 영업사원 답변은 팀장 코멘트가 1건 이상 있어야(disabled=false) 입력 가능하다.
+// 팀장 코멘트는 이 제약이 없으므로 SalesLogReviewPage(FE-7)는 항상 disabled=false로 사용한다.
+export default function CommentForm({ onSubmit, disabled, submitting, error, placeholder = '여기에 답변을 입력...' }) {
   const [content, setContent] = useState('');
 
   async function handleSubmit(e) {
@@ -16,7 +17,7 @@ export default function CommentForm({ onSubmit, disabled, submitting, error }) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="여기에 답변을 입력..."
+        placeholder={placeholder}
         disabled={disabled}
         rows={3}
       />

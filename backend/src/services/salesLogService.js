@@ -182,9 +182,30 @@ async function listManagedSalesLogs(authorIds) {
   return result.rows.map((row) => ({ ...mapRow(row), authorEmployeeNo: row.employee_no }));
 }
 
-async function getSalesLogById(id, authorId) {
-  const row = await requireOwnedRow(id, authorId, '조회할 수');
-  return mapRow(row);
+// commentService.isManagerOfAuthor와 같은 판별이지만, 각 서비스가 자기 소관의 조회 권한만
+// 소규모로 체크하는 이 코드베이스의 기존 패턴(customerService.getCustomerKnowhow 등)을 따른다.
+async function isManagerOfAuthor(authorId, requesterId) {
+  const result = await pool.query('SELECT 1 FROM users WHERE id = $1 AND manager_id = $2', [
+    authorId,
+    requesterId,
+  ]);
+  return result.rows.length > 0;
+}
+
+// FE-5(SalesLogDetailPage)는 작성자 본인, FE-7(SalesLogReviewPage)는 담당 팀장이 호출한다.
+async function getSalesLogById(id, requesterId, requesterRole) {
+  const row = await findSalesLogRow(id);
+  if (!row) {
+    throw notFound('영업일지를 찾을 수 없습니다.');
+  }
+  const isAuthor = row.author_id === requesterId;
+  const isManager = requesterRole === 'manager' && (await isManagerOfAuthor(row.author_id, requesterId));
+  if (!isAuthor && !isManager) {
+    throw forbidden('본인이 작성한 영업일지이거나 담당 팀장만 조회할 수 있습니다.');
+  }
+  // listManagedSalesLogs와 같은 컨벤션 — SalesLogReviewPage(FE-7)가 작성자를 표시하는 데 쓴다.
+  const author = await pool.query('SELECT employee_no FROM users WHERE id = $1', [row.author_id]);
+  return { ...mapRow(row), authorEmployeeNo: author.rows[0].employee_no };
 }
 
 // RULE-LOG-002: 작성자 본인만 수정 가능.

@@ -36,7 +36,11 @@ async function list(req, res, next) {
 
 async function getById(req, res, next) {
   try {
-    const log = await salesLogService.getSalesLogById(Number(req.params.id), req.session.userId);
+    const log = await salesLogService.getSalesLogById(
+      Number(req.params.id),
+      req.session.userId,
+      req.session.role
+    );
     res.status(200).json(log);
   } catch (err) {
     next(err);
