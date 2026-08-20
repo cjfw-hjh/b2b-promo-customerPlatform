@@ -297,8 +297,8 @@
 - **수행 작업**:
   - `MyCommentHistoryPage.jsx`를 6-wireframe.md 9번 와이어프레임대로 구현한다(`GET /api/managed/comments` 연동).
 - **완료 조건**:
-  - [ ] 로그인한 팀장이 과거에 남긴 코멘트만 작성일순으로 표시된다.
-  - [ ] 항목 클릭 시 FE-7(SalesLogReviewPage)로 이동한다.
+  - [x] 로그인한 팀장이 과거에 남긴 코멘트만 작성일순으로 표시된다.
+  - [x] 항목 클릭 시 FE-7(SalesLogReviewPage)로 이동한다.
 
 ### FE-9. 반응형 스타일 적용 `(P0)`
 

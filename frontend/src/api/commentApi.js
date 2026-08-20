@@ -10,3 +10,7 @@ export function createComment(salesLogId, content) {
     body: JSON.stringify({ content }),
   });
 }
+
+export function listManagedComments() {
+  return request('/managed/comments');
+}
