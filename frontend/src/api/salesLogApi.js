@@ -20,3 +20,7 @@ export function updateSalesLog(id, data) {
 export function deleteSalesLog(id) {
   return request(`/sales-logs/${id}`, { method: 'DELETE' });
 }
+
+export function listManagedSalesLogs() {
+  return request('/managed/sales-logs');
+}
