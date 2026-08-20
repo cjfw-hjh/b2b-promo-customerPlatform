@@ -16,3 +16,7 @@ export function getSalesLog(id) {
 export function updateSalesLog(id, data) {
   return request(`/sales-logs/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
+
+export function deleteSalesLog(id) {
+  return request(`/sales-logs/${id}`, { method: 'DELETE' });
+}
