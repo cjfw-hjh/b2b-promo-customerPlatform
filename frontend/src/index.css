@@ -18,3 +18,35 @@ body {
 .app-content {
   padding: 20px;
 }
+
+.auth-page {
+  max-width: 360px;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.auth-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.auth-page label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.auth-page fieldset {
+  display: flex;
+  gap: 16px;
+  border: 1px solid #e5e4e7;
+}
+
+.form-error {
+  color: #c0392b;
+  font-size: 14px;
+  margin: 0;
+}
