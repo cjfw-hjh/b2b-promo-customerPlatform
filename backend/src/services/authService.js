@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const pool = require('../db/pool');
+const organizationService = require('./organizationService');
 
 const EMPLOYEE_NO_LENGTH = 6;
 const PASSWORD_MIN_LENGTH = 7;
@@ -54,6 +55,10 @@ async function signup(input) {
       [employeeNo, email, passwordHash, role, managerEmail]
     );
     const row = result.rows[0];
+    if (role === 'manager') {
+      // RULE-ORG-005: 이미 이 이메일을 팀장 이메일로 입력해둔 영업사원들을 즉시 매칭한다.
+      await organizationService.linkExistingSalespeople(email, row.id);
+    }
     return { id: row.id, employeeNo: row.employee_no, email: row.email, role: row.role };
   } catch (err) {
     // RULE-AUTH-004 / RULE-AUTH-005: 사번/이메일 중복 등록 불가.
