@@ -86,3 +86,53 @@ body {
   display: flex;
   gap: 12px;
 }
+
+.sales-log-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sales-log-search label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.sales-log-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sales-log-list-item a {
+  display: flex;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 1px solid #e5e4e7;
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.status-badge--done {
+  background: #eef1ef;
+  color: #3a5a40;
+}
+
+.status-badge--commented {
+  background: rgba(170, 59, 255, 0.1);
+  color: #aa3bff;
+}
