@@ -10,6 +10,19 @@ const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
+// 프론트/백엔드를 서로 다른 Vercel 도메인에 나눠 배포하므로 크로스오리진 요청을 허용한다.
+// 로컬 개발은 Vite 프록시로 same-origin처럼 동작해 FRONTEND_ORIGIN이 필요 없다(vite.config.js).
+if (process.env.FRONTEND_ORIGIN) {
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', process.env.FRONTEND_ORIGIN);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+  });
+}
+
 app.use(morgan('dev'));
 app.use(session);
 app.use(express.json());

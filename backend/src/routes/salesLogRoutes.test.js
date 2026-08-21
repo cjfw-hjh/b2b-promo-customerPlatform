@@ -126,7 +126,8 @@ describe('POST /api/sales-logs', () => {
     expect(res.body.createdAt).not.toBe(spoofedDate);
     const createdAtMs = new Date(res.body.createdAt).getTime();
     expect(createdAtMs).toBeGreaterThanOrEqual(before);
-    expect(createdAtMs).toBeLessThanOrEqual(Date.now());
+    // DB가 원격(Supabase)이라 테스트 러너와 시계가 완전히 일치하지 않는다 — 약간의 여유를 둔다.
+    expect(createdAtMs).toBeLessThanOrEqual(Date.now() + 5000);
   });
 
   test("activityType이 '외근'/'내근'/'기타'가 아니면 400", async () => {
