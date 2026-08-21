@@ -99,6 +99,7 @@ describe('POST /api/sales-logs', () => {
       customerId: CUSTOMER_ID,
       activityType: '외근',
       activityContent: '거래처 방문',
+      summary: null,
       createdAt: expect.any(String),
       status: '작성 완료',
     });

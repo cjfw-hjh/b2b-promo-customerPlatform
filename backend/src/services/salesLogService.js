@@ -1,5 +1,6 @@
 const pool = require('../db/pool');
 const notificationService = require('./notificationService');
+const summaryService = require('./summaryService');
 
 const ACTIVITY_TYPES = ['외근', '내근', '기타'];
 
@@ -43,6 +44,7 @@ function mapRow(row) {
     customerId: row.customer_id,
     activityType: row.activity_type,
     activityContent: row.activity_content,
+    summary: row.summary,
     createdAt: row.created_at.toISOString(),
     status: computeStatus(row.comment_count),
   };
@@ -52,7 +54,7 @@ function mapRow(row) {
 // 기존 export 함수들의 시그니처는 그대로 두고 이 조회 전용 함수만 추가로 export한다.
 async function findSalesLogRow(id) {
   const result = await pool.query(
-    `SELECT sl.id, sl.customer_id, sl.author_id, sl.activity_type, sl.activity_content, sl.created_at,
+    `SELECT sl.id, sl.customer_id, sl.author_id, sl.activity_type, sl.activity_content, sl.summary, sl.created_at,
             COUNT(c.id) AS comment_count
      FROM sales_logs sl
      LEFT JOIN comments c ON c.sales_log_id = sl.id
@@ -82,13 +84,15 @@ async function createSalesLog({ customerId, activityType, activityContent, autho
   validateActivityType(activityType);
   validateActivityContent(activityContent);
 
+  const summary = await summaryService.summarizeActivityContent(activityContent);
+
   let row;
   try {
     const result = await pool.query(
-      `INSERT INTO sales_logs (customer_id, author_id, activity_type, activity_content)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, customer_id, activity_type, activity_content, created_at`,
-      [customerId, authorId, activityType, activityContent]
+      `INSERT INTO sales_logs (customer_id, author_id, activity_type, activity_content, summary)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, customer_id, activity_type, activity_content, summary, created_at`,
+      [customerId, authorId, activityType, activityContent, summary]
     );
     row = result.rows[0];
   } catch (err) {
@@ -150,7 +154,7 @@ async function listMySalesLogs(authorId, filters = {}) {
   }
 
   const result = await pool.query(
-    `SELECT sl.id, sl.customer_id, sl.activity_type, sl.activity_content, sl.created_at,
+    `SELECT sl.id, sl.customer_id, sl.activity_type, sl.activity_content, sl.summary, sl.created_at,
             COUNT(c.id) AS comment_count
      FROM sales_logs sl
      LEFT JOIN comments c ON c.sales_log_id = sl.id
@@ -169,7 +173,7 @@ async function listManagedSalesLogs(authorIds) {
     return [];
   }
   const result = await pool.query(
-    `SELECT sl.id, sl.customer_id, sl.activity_type, sl.activity_content, sl.created_at,
+    `SELECT sl.id, sl.customer_id, sl.activity_type, sl.activity_content, sl.summary, sl.created_at,
             u.employee_no, COUNT(c.id) AS comment_count
      FROM sales_logs sl
      JOIN users u ON u.id = sl.author_id
@@ -231,6 +235,10 @@ async function updateSalesLog(id, authorId, updates) {
     validateActivityContent(updates.activityContent);
     fields.push(`activity_content = $${idx++}`);
     values.push(updates.activityContent);
+    // 활동 내역이 바뀌면 요약도 최신 내용 기준으로 다시 생성한다(안 그러면 예전 내용 기준 요약이 남는다).
+    const summary = await summaryService.summarizeActivityContent(updates.activityContent);
+    fields.push(`summary = $${idx++}`);
+    values.push(summary);
   }
 
   if (fields.length === 0) {
@@ -241,7 +249,7 @@ async function updateSalesLog(id, authorId, updates) {
   try {
     const result = await pool.query(
       `UPDATE sales_logs SET ${fields.join(', ')} WHERE id = $${idx}
-       RETURNING id, customer_id, activity_type, activity_content, created_at`,
+       RETURNING id, customer_id, activity_type, activity_content, summary, created_at`,
       values
     );
     // 코멘트는 이 수정으로 변하지 않으므로 requireOwnedRow에서 조회한 comment_count를 그대로 재사용한다.

@@ -73,6 +73,7 @@ describe('createSalesLog', () => {
       customerId: CUSTOMER_ID,
       activityType: '외근',
       activityContent: '거래처 방문 미팅',
+      summary: null,
       createdAt: expect.any(String),
       status: '작성 완료',
     });
