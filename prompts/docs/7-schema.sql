@@ -74,7 +74,7 @@ CREATE TABLE sales_logs (
     -- 도메인 정의서 7.2, PRINCIPLE-ACTIVITY-001
     activity_content    TEXT NOT NULL,
 
-    -- activity_content 저장/수정 시 Claude API로 생성하는 요약. 생성 실패 시 NULL(저장 자체는 막지 않음).
+    -- activity_content 앞부분을 발췌한 요약(80자 초과일 때만). 짧으면 NULL.
     summary             TEXT,
 
     -- RULE-LOG-001(임의 변경 불가), RULE-LOG-004(수정해도 불변) — 애플리케이션에서 UPDATE 시 이 컬럼을 건드리지 않는다

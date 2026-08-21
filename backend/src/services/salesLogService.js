@@ -84,7 +84,7 @@ async function createSalesLog({ customerId, activityType, activityContent, autho
   validateActivityType(activityType);
   validateActivityContent(activityContent);
 
-  const summary = await summaryService.summarizeActivityContent(activityContent);
+  const summary = summaryService.summarizeActivityContent(activityContent);
 
   let row;
   try {
@@ -236,7 +236,7 @@ async function updateSalesLog(id, authorId, updates) {
     fields.push(`activity_content = $${idx++}`);
     values.push(updates.activityContent);
     // 활동 내역이 바뀌면 요약도 최신 내용 기준으로 다시 생성한다(안 그러면 예전 내용 기준 요약이 남는다).
-    const summary = await summaryService.summarizeActivityContent(updates.activityContent);
+    const summary = summaryService.summarizeActivityContent(updates.activityContent);
     fields.push(`summary = $${idx++}`);
     values.push(summary);
   }
