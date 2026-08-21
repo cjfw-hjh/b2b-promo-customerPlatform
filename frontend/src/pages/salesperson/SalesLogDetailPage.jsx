@@ -13,19 +13,20 @@ export default function SalesLogDetailPage() {
   const [customers, setCustomers] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [commentError, setCommentError] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
 
   useEffect(() => {
-    Promise.all([getSalesLog(id), listComments(id), listCustomers()]).then(
-      ([logResult, commentsResult, customersResult]) => {
+    Promise.all([getSalesLog(id), listComments(id), listCustomers()])
+      .then(([logResult, commentsResult, customersResult]) => {
         setLog(logResult);
         setComments(commentsResult);
         setCustomers(customersResult);
-        setLoading(false);
-      }
-    );
+      })
+      .catch((err) => setLoadError(err.message))
+      .finally(() => setLoading(false));
   }, [id]);
 
   async function handleDelete() {
@@ -55,6 +56,16 @@ export default function SalesLogDetailPage() {
   }
 
   if (loading) return <p>불러오는 중...</p>;
+  if (loadError) {
+    return (
+      <div>
+        <p>
+          <Link to="/salesperson/logs">&lt; 목록으로</Link>
+        </p>
+        <p className="form-error">{loadError}</p>
+      </div>
+    );
+  }
 
   // RULE-LOG-005 / RULE-REPLY-001: 백엔드도 코멘트 유형을 구분하지 않고 개수만으로 판단한다.
   const hasComments = comments.length > 0;
@@ -67,7 +78,8 @@ export default function SalesLogDetailPage() {
       </p>
 
       <p>
-        거래처: {customerName} 영업 형태: {log.activityType}
+        거래처: <Link to={`/salesperson/customers/${log.customerId}/knowhow`}>{customerName}</Link> 영업 형태:{' '}
+        {log.activityType}
       </p>
       <p className="form-static">
         작성일: {log.createdAt.slice(0, 10)} (수정해도 최초 작성일은 변경되지 않음)

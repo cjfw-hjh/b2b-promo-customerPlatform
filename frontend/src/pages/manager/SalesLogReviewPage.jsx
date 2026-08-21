@@ -13,18 +13,19 @@ export default function SalesLogReviewPage() {
   const [customers, setCustomers] = useState([]);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [commentError, setCommentError] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
 
   useEffect(() => {
-    Promise.all([getSalesLog(id), listComments(id), listCustomers()]).then(
-      ([logResult, commentsResult, customersResult]) => {
+    Promise.all([getSalesLog(id), listComments(id), listCustomers()])
+      .then(([logResult, commentsResult, customersResult]) => {
         setLog(logResult);
         setComments(commentsResult);
         setCustomers(customersResult);
-        setLoading(false);
-      }
-    );
+      })
+      .catch((err) => setLoadError(err.message))
+      .finally(() => setLoading(false));
   }, [id]);
 
   // RULE-FEEDBACK-001/002: 팀장 코멘트는 횟수 제한도, 최초 코멘트 선행 조건도 없다 — 항상 활성.
@@ -46,6 +47,16 @@ export default function SalesLogReviewPage() {
   }
 
   if (loading) return <p>불러오는 중...</p>;
+  if (loadError) {
+    return (
+      <div>
+        <p>
+          <Link to="/manager/logs">&lt; 목록으로</Link>
+        </p>
+        <p className="form-error">{loadError}</p>
+      </div>
+    );
+  }
 
   const customerName = customers.find((c) => c.id === log.customerId)?.name;
 
