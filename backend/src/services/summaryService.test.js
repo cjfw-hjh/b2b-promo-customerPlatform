@@ -17,4 +17,9 @@ describe('summarizeActivityContent', () => {
     const content = '가나다 라마바. 사과 바나나. 사과 바나나 다른어휘.';
     expect(summarizeActivityContent(content)).not.toContain('가나다');
   });
+
+  test('번호를 매긴 글("1. ~. 2. ~.")에서 번호가 별도 문장으로 잘리지 않는다', () => {
+    const content = '1. 사과 구매. 2. 바나나 구매. 3. 사과 바나나 포장 완료.';
+    expect(summarizeActivityContent(content)).toBe('1. 사과 구매. 2. 바나나 구매.');
+  });
 });
