@@ -279,7 +279,7 @@ describe('GET /api/managed/comments', () => {
     expect(res.body.map((c) => c.content)).toEqual(['A의 두번째 코멘트', 'A의 첫 코멘트']);
     expect(res.body[0]).toMatchObject({
       salesLogId: otherLogS1Id,
-      customerName: '테스트거래처1',
+      customerName: '교촌 치킨',
       authorEmployeeNo: SALES_S1_NO,
     });
     res.body.forEach((c) => {

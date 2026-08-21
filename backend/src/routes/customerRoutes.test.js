@@ -47,7 +47,7 @@ describe('GET /api/customers', () => {
     expect(Array.isArray(res.body)).toBe(true);
 
     const names = res.body.map((c) => c.name);
-    expect(names).toEqual(expect.arrayContaining(['테스트거래처1', '테스트거래처2', '테스트거래처3']));
+    expect(names).toEqual(expect.arrayContaining(['교촌 치킨', '메가 요거트', '동대구 요양병원']));
 
     // 응답 필드는 id, name만 있어야 한다(RULE-CUSTOMER-003: 최소 컬럼 구성).
     res.body.forEach((customer) => {

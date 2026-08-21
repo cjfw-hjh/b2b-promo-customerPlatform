@@ -259,7 +259,7 @@ describe('listManagedComments', () => {
       content: 'A의 두번째 코멘트',
       createdAt: expect.any(String),
       salesLogId: otherLog.id,
-      customerName: '테스트거래처1',
+      customerName: '교촌 치킨',
       authorEmployeeNo: TEST_EMPLOYEE_NOS[2], // S1의 사번(코멘트 작성자가 아니라 영업일지 작성자)
     });
   });
