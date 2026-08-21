@@ -10,6 +10,10 @@ const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
+// Vercel이 TLS를 엣지에서 종료하고 함수에는 평문 HTTP로 전달하므로, 이 설정이 없으면
+// req.secure가 항상 false가 되어 세션 쿠키의 secure:true(session.js)가 아예 발급되지 않는다.
+app.set('trust proxy', 1);
+
 // 프론트/백엔드를 서로 다른 Vercel 도메인에 나눠 배포하므로 크로스오리진 요청을 허용한다.
 // 로컬 개발은 Vite 프록시로 same-origin처럼 동작해 FRONTEND_ORIGIN이 필요 없다(vite.config.js).
 if (process.env.FRONTEND_ORIGIN) {
